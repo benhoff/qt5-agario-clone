@@ -1,26 +1,56 @@
 #include "gameinterface.h"
+#include <QWebSocket>
 
 
-GameInterface::GameInterface(QObject *parent) : QObject(parent)
+GameInterface::GameInterface(QObject *parent)
+    : QObject(parent)
+    , _websocket_server(new QWebSocketServer("Eatem", QWebSocketServer::NonSecureMode))
+    , _webchannel(new QWebChannel())
+    , _client_wrapper(new WebSocketClientWrapper(_websocket_server))
 {
+    // TODO: make configurable
+    bool listening = _websocket_server->listen(QHostAddress::LocalHost, 5555);
+
+    Q_UNUSED(listening)
+
     _game_size.setHeight(500);
     _game_size.setWidth(500);
-    // create our player
-    _this_player = new Player();
-    // Now we need to add our player to the list of players.
-    // Our list of players has a type of `QVariantList`
-    // So in order to add to this list, we have to create a new QVariant
-
-    // QVariant is a templated class. This means that we need
-    // to let the class know what our type is
-    _players.append(QVariant::fromValue<Player*>(_this_player));
-    // Note the syntax `QVariant::fromValue<Player*>`
-    // We're letting the templated function `fromValue` know
-    // That it'll be ingesting the type `Player*`
-    // Which is a pointer to our player instance.
 
     create_food();
     create_viruses();
+
+    _webchannel->registerObject("feed", _food);
+    _webchannel->registerObject("viruses", _viruses);
+    _webchannel->registerObject("players", _players);
+
+    connect(_websocket_server, &QWebSocketServer::newConnection,
+            this, &GameInterface::handle_new_connection);
+
+    // NOTE: Could get in this block and mess with it a bit in order to do some auth
+    // stuff to make sure our users are good
+
+    // Here's the code of `connectTo`
+
+    // connect(transport, &QWebChannelAbstractTransport::messageReceived,
+    //         d->publisher, &QMetaObjectPublisher::handleMessage,
+    //         Qt::UniqueConnection);
+    // connect(transport, SIGNAL(destroyed(QObject*)),
+    //         this, SLOT(_q_transportDestroyed(QObject*)));
+
+    connect(this, &GameInterface::client_connected, _webchannel, &QWebChannel::connectTo);
+}
+
+void GameInterface::handle_new_connection()
+{
+    QWebSocket *web_socket = _websocket_server->nextPendingConnection();
+    // QString origin = web_socket->origin();
+    WebSocketTransport *transport = new WebSocketTransport(web_socket);
+    emit client_connected(transport);
+
+    // NOTE: I believe this is a memory leak. Should probably use a shared pointer
+    // Also, no delete logic currently
+    Player *new_player = new Player();
+    _players.append(QVariant::fromValue<Player*>(new_player));
 }
 
 void GameInterface::create_viruses()
@@ -101,15 +131,4 @@ void GameInterface::check_game_object_interactions()
             player->handle_touch(other_player);
         }
     }
-}
-
-void GameInterface::set_game_height(int height)
-{
-    qDebug() << height;
-    _game_size.setHeight(height);
-}
-
-void GameInterface::set_game_widget(int width)
-{
-    _game_size.setWidth(width);
 }
