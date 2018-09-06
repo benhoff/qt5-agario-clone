@@ -8,7 +8,7 @@ There are four seperate projects contained in this repo.
 
 1. eatem-standalone (QML/C++ Agario single player)
 2. eatem (QML Agario client)
-3. eatem-server (QML Agario server)
+3. eatem-server (C++ Agario server)
 4. eatem-web (HTML/JavaScript Agario client)
 
 The web client (eatem-web) is currently under devlopment/not working.
