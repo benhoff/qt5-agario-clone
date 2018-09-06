@@ -19,7 +19,7 @@ If you want to try out the client and server, please ensure that the server is r
 
 #### Note of Caution
 
-Please note that the server/game was built for educational purposes, so the server is *not* performant/optimized. The server implementation is single threaded. The data structures are basic lists (vs a quadtree or some other space-based data structure). No attempts where made to reduce the networking overhead. No attempts were made with respect to DDOS prevention and some of the client endpoints could easily be abused in a game-breaking manner, as not all of them are rate-limited. You've been warned!
+Please note that the server/game was built for educational purposes, so the server is *not* performant/optimized. The server implementation is single threaded. The data structures are basic lists (vs a quadtree or some other space-based data structure). No attempts where made to reduce the networking overhead. No attempts were made with respect to DDOS prevention and some of the server endpoints could easily be abused in a game-breaking manner, as not all of them are rate-limited. You've been warned!
 
 ## Server Pre-build Instructions
 
